@@ -12,6 +12,8 @@ export enum FaceEvents {
   Enter = "onFaceEnter",
   Leave = "onFaceLeave",
   Move = "onFaceMove",
+  MouthOpen = "onMouthOpen",
+  MouthClose = "onMouthClose",
 }
 
 const subscribe = (event: FaceEvents, callback: EventListener) => {
@@ -24,13 +26,17 @@ const unsubscribe = (event: FaceEvents, callback: EventListener) => {
 
 const dispatch = (eventName: FaceEvents) => {
   const event = new CustomEvent(eventName);
+  console.log("DISPATCHING EVENT", event);
   window.dispatchEvent(event);
 };
+
+const mouthOpenThreshold = 0.2;
 
 export function useFaceDetection(canvasId: string) {
   useEffect(() => {
     const JeelizFaceFilterInstance = JeelizFaceFilter.create_new();
     let isActive = true;
+    let mouthOpen = false;
     let CVD: JeelizCanvas2DHelper | null = null;
     const initConfig: IJeelizFaceFilterInitParams = {
       canvasId: canvasId,
@@ -44,7 +50,7 @@ export function useFaceDetection(canvasId: string) {
       ) => {
         console.log(spec);
         if (JeelizFaceFilterInstance && !isActive) {
-          console.log("DESTROY")
+          console.log("DESTROY");
           JeelizFaceFilterInstance.destroy();
         }
         if (errCode) {
@@ -61,7 +67,28 @@ export function useFaceDetection(canvasId: string) {
         // console.log(CVD);
         // Render your scene here
         // [... do something with detectState]
-        console.log(detectState.expressions[0] > 0.2);
+        if (detectState.detected > 0.8) {
+          if (detectState.expressions[0] > mouthOpenThreshold && !mouthOpen) {
+            console.log(detectState);
+            dispatch(FaceEvents.MouthOpen);
+            mouthOpen = true;
+          } else if (
+            mouthOpen &&
+            detectState.expressions[0] < mouthOpenThreshold
+          ) {
+            dispatch(FaceEvents.MouthClose);
+            mouthOpen = false;
+          }
+
+          // draw a border around the face:
+          if (CVD) {
+            const faceCoo = CVD.getCoordinates(detectState);
+            CVD.CTX.clearRect(0, 0, CVD.CANVAS2D?.width, CVD.CANVAS2D?.height);
+            CVD.CTX.strokeRect(faceCoo.x, faceCoo.y, faceCoo.w, faceCoo.h);
+            CVD.update_canvasTexture();
+          }
+        }
+
         if (CVD) {
           CVD.update_canvasTexture();
           CVD.draw(detectState);
@@ -74,10 +101,11 @@ export function useFaceDetection(canvasId: string) {
         console.log("RESIZE CALLBACK");
         console.log(isError);
         console.log(bestVideoSettings);
-        JeelizFaceFilterInstance.init(initConfig);
+        if (isActive) {
+          JeelizFaceFilterInstance.init(initConfig);
+        }
       },
     });
-
 
     return () => {
       console.log("DESTROYING JEELIZFACEFILTER");
@@ -88,7 +116,7 @@ export function useFaceDetection(canvasId: string) {
 
   const resize = () => {
     JeelizResizer.resize_canvas();
-  }
+  };
 
   return {
     subscribe,
