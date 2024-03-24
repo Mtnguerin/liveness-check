@@ -1,12 +1,21 @@
 import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
+import react from '@vitejs/plugin-react'
+import svgr from 'vite-plugin-svgr'
 import path from "path";
 
-const aliases = ["dist", "pages", "features", "components", "hooks"];
+const aliases = [
+  "dist",
+  "pages",
+  "features",
+  "components",
+  "hooks",
+  "utils",
+  "assets",
+];
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), svgr()],
   resolve: {
     alias: aliases.map((alias) => ({
       find: `@${alias}`,

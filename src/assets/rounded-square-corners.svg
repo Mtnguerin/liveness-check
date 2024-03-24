@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg viewBox="1 1 62 62" width="62" height="62" xmlns="http://www.w3.org/2000/svg">
+	<path d="M 0 53 L 11 53 L 11 64" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor"
+		stroke-width="2" style="transform-origin: 6px 58px;"
+		transform="matrix(-1, 0, 0, -1, -0.000001907349, 0)" />
+	<path d="M 52 1 L 63 1 L 63 12" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor"
+		stroke-width="2" style="transform-origin: 58px 6px;" />
+	<path d="M 53 63 L 63 63 L 63 53" xmlns="http://www.w3.org/2000/svg" fill="none"
+		stroke="currentColor" stroke-width="2" style="transform-origin: 59px 59px;" />
+	<path d="M -0.946 9 L 9.054 9 L 9.054 -1" xmlns="http://www.w3.org/2000/svg" fill="none"
+		stroke="currentColor" stroke-width="2" style="transform-origin: 5.054px 5px;"
+		transform="matrix(-1, 0, 0, -1, 0.000001907349, 0)" />
+</svg>

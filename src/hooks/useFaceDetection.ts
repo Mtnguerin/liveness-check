@@ -6,7 +6,7 @@ import {
 } from "@dist/JeelizFaceFilterInterfaces";
 import JeelizFaceFilter from "@dist/jeelizFaceFilter.moduleES6.js";
 import JeelizResizer from "@dist/JeelizResizer.js";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export enum FaceEvents {
   Enter = "onFaceEnter",
@@ -24,19 +24,22 @@ const unsubscribe = (event: FaceEvents, callback: EventListener) => {
   window.removeEventListener(event, callback);
 };
 
-const dispatch = (eventName: FaceEvents) => {
-  const event = new CustomEvent(eventName);
-  console.log("DISPATCHING EVENT", event);
+const dispatch = (eventName: FaceEvents, details?: any ) => {
+  const event = new CustomEvent(eventName, details);
   window.dispatchEvent(event);
 };
 
 const mouthOpenThreshold = 0.2;
 
 export function useFaceDetection(canvasId: string) {
+  const [loading, setLoading] = useState(true);
+  const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null);
+
   useEffect(() => {
     const JeelizFaceFilterInstance = JeelizFaceFilter.create_new();
     let isActive = true;
     let mouthOpen = false;
+    let faceDetected = false;
     let CVD: JeelizCanvas2DHelper | null = null;
     const initConfig: IJeelizFaceFilterInitParams = {
       canvasId: canvasId,
@@ -48,19 +51,18 @@ export function useFaceDetection(canvasId: string) {
         errCode: string | false,
         spec: IJeelizFaceFilterInitResult
       ) => {
-        console.log(spec);
         if (JeelizFaceFilterInstance && !isActive) {
-          console.log("DESTROY");
           JeelizFaceFilterInstance.destroy();
+          return;
         }
         if (errCode) {
           console.log("AN ERROR HAPPENS. ERROR CODE =", errCode);
           return;
         }
         console.log("INFO: JEELIZFACEFILTER IS READY");
-        console.log(JeelizFaceFilterInstance);
         CVD = new JeelizCanvas2DHelper(spec);
-        CVD.CTX.strokeStyle = "yellow";
+        setCanvas(CVD.CANVAS2D);
+        setLoading(false);
       },
       callbackTrack: (detectState: IJeelizFaceFilterDetectState) => {
         // console.log(detectState);
@@ -68,6 +70,10 @@ export function useFaceDetection(canvasId: string) {
         // Render your scene here
         // [... do something with detectState]
         if (detectState.detected > 0.8) {
+          if (!faceDetected) {
+            faceDetected = true;
+            dispatch(FaceEvents.Enter);
+          }
           if (detectState.expressions[0] > mouthOpenThreshold && !mouthOpen) {
             console.log(detectState);
             dispatch(FaceEvents.MouthOpen);
@@ -79,16 +85,15 @@ export function useFaceDetection(canvasId: string) {
             dispatch(FaceEvents.MouthClose);
             mouthOpen = false;
           }
-
-          // draw a border around the face:
-          if (CVD) {
-            const faceCoo = CVD.getCoordinates(detectState);
-            CVD.CTX.clearRect(0, 0, CVD.CANVAS2D?.width, CVD.CANVAS2D?.height);
-            CVD.CTX.strokeRect(faceCoo.x, faceCoo.y, faceCoo.w, faceCoo.h);
-            CVD.update_canvasTexture();
-          }
+          console.log(detectState);
+          const { rx, ry, rz } = detectState;
+          dispatch(FaceEvents.Move, {
+            detail: {...CVD?.getCoordinates(detectState), rx, ry, rz},
+          });
+        } else if (faceDetected) {
+          faceDetected = false;
+          dispatch(FaceEvents.Leave);
         }
-
         if (CVD) {
           CVD.update_canvasTexture();
           CVD.draw(detectState);
@@ -97,10 +102,7 @@ export function useFaceDetection(canvasId: string) {
     };
     JeelizResizer.size_canvas({
       canvasId: canvasId,
-      callback: (isError: boolean, bestVideoSettings: any) => {
-        console.log("RESIZE CALLBACK");
-        console.log(isError);
-        console.log(bestVideoSettings);
+      callback: () => {
         if (isActive) {
           JeelizFaceFilterInstance.init(initConfig);
         }
@@ -123,5 +125,7 @@ export function useFaceDetection(canvasId: string) {
     unsubscribe,
     dispatch,
     resize,
+    loading,
+    canvas,
   };
 }
