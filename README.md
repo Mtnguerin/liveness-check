@@ -1,30 +1,19 @@
-# React + TypeScript + Vite
+# Liveness Check
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This serves as an illustration of a liveness check in Vite/React, using [JeelizFaceFilter](https://github.com/jeeliz/jeelizFaceFilter).
 
-Currently, two official plugins are available:
+Explore the live demonstration [here](https://mtnguerin.github.io/liveness-check).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+To launch the project locally, execute the following commands:
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
-
-- Configure the top-level `parserOptions` property like this:
-
-```js
-export default {
-  // other rules...
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
-    tsconfigRootDir: __dirname,
-  },
-}
+```bash
+npm install
+npm run dev
 ```
+Then you can go to http://localhost:5173/.
 
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+If you want to try it on mobile it should be http://192.168.X.X:5173. 
+
+You must do threat the ip as secure on chrome in order to have the webcam access feature : https://stackoverflow.com/a/53388534
+
+This project has been done with Node v20.11.1
