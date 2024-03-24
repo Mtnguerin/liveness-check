@@ -6,7 +6,7 @@ import {
 } from "@dist/JeelizFaceFilterInterfaces";
 import JeelizFaceFilter from "@dist/jeelizFaceFilter.moduleES6.js";
 import JeelizResizer from "@dist/JeelizResizer.js";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export enum FaceEvents {
   Enter = "onFaceEnter",
@@ -24,7 +24,7 @@ const unsubscribe = (event: FaceEvents, callback: EventListener) => {
   window.removeEventListener(event, callback);
 };
 
-const dispatch = (eventName: FaceEvents, details?: any ) => {
+const dispatch = (eventName: FaceEvents, details?: any) => {
   const event = new CustomEvent(eventName, details);
   window.dispatchEvent(event);
 };
@@ -33,7 +33,20 @@ const mouthOpenThreshold = 0.2;
 
 export function useFaceDetection(canvasId: string) {
   const [loading, setLoading] = useState(true);
-  const [canvas, setCanvas] = useState<HTMLCanvasElement | null>(null);
+  const [cvd, setCvd] = useState<JeelizCanvas2DHelper>();
+
+  const takePicture = useCallback(() => {
+    if ( cvd && cvd.CV && cvd.CANVAS2D) {
+      const ctx = cvd.CANVAS2D.getContext("2d");
+      ctx?.clearRect(0, 0, cvd.CANVAS2D.width, cvd.CANVAS2D.height);
+      cvd.draw({} as IJeelizFaceFilterDetectState);
+      if (ctx) {
+        const data = cvd.CV.toDataURL("image/jpeg");
+        return data;
+      }
+    }
+    return null;
+  }, [cvd]);
 
   useEffect(() => {
     const JeelizFaceFilterInstance = JeelizFaceFilter.create_new();
@@ -61,21 +74,16 @@ export function useFaceDetection(canvasId: string) {
         }
         console.log("INFO: JEELIZFACEFILTER IS READY");
         CVD = new JeelizCanvas2DHelper(spec);
-        setCanvas(CVD.CANVAS2D);
+        setCvd(CVD);
         setLoading(false);
       },
       callbackTrack: (detectState: IJeelizFaceFilterDetectState) => {
-        // console.log(detectState);
-        // console.log(CVD);
-        // Render your scene here
-        // [... do something with detectState]
         if (detectState.detected > 0.8) {
           if (!faceDetected) {
             faceDetected = true;
             dispatch(FaceEvents.Enter);
           }
           if (detectState.expressions[0] > mouthOpenThreshold && !mouthOpen) {
-            console.log(detectState);
             dispatch(FaceEvents.MouthOpen);
             mouthOpen = true;
           } else if (
@@ -85,10 +93,9 @@ export function useFaceDetection(canvasId: string) {
             dispatch(FaceEvents.MouthClose);
             mouthOpen = false;
           }
-          console.log(detectState);
           const { rx, ry, rz } = detectState;
           dispatch(FaceEvents.Move, {
-            detail: {...CVD?.getCoordinates(detectState), rx, ry, rz},
+            detail: { ...CVD?.getCoordinates(detectState), rx, ry, rz },
           });
         } else if (faceDetected) {
           faceDetected = false;
@@ -114,7 +121,7 @@ export function useFaceDetection(canvasId: string) {
       isActive = false;
       JeelizFaceFilterInstance.destroy();
     };
-  }, []);
+  }, [canvasId]);
 
   const resize = () => {
     JeelizResizer.resize_canvas();
@@ -126,6 +133,7 @@ export function useFaceDetection(canvasId: string) {
     dispatch,
     resize,
     loading,
-    canvas,
+    canvas: cvd?.CANVAS2D,
+    takePicture,
   };
 }
