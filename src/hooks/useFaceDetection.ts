@@ -56,7 +56,7 @@ export function useFaceDetection(canvasId: string) {
     let CVD: JeelizCanvas2DHelper | null = null;
     const initConfig: IJeelizFaceFilterInitParams = {
       canvasId: canvasId,
-      NNCPath: "/neuralNets/",
+      NNCPath: "./neuralNets/",
       videoSettings: {
         flipX: true,
       },
