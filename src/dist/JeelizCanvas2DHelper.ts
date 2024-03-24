@@ -23,7 +23,6 @@ export class JeelizCanvas2DHelper {
   private VIDEOTEXTURE : WebGLUniformLocation | null= null;
   private VIDEOTEXTURETRANSFORMMAT2 : number[] | null= null;
   private UUVTRANSFORM : WebGLUniformLocation | null= null;
-  private spec:IJeelizFaceFilterInitResult;
 
   public CV : HTMLCanvasElement | null= null; 
   public CANVAS2D: HTMLCanvasElement | null = null; 
@@ -34,7 +33,6 @@ export class JeelizCanvas2DHelper {
   };
 
   constructor(spec:IJeelizFaceFilterInitResult){
-      this.spec = spec;
         // affect some globalz:
       this.GL = spec.GL;
       this.CV = spec.canvasElement;
@@ -121,7 +119,7 @@ export class JeelizCanvas2DHelper {
       this.CANVASTEXTURENEEDSUPDATE = true;
     }
 
-    public draw (detectState: IJeelizFaceFilterDetectState) { // draw the video and the canvas above
+    public draw (_detectState: IJeelizFaceFilterDetectState) { // draw the video and the canvas above
       if (this.CV == null || this.GL == null || this.SHADERCOPY == null || this.VIDEOTEXTURETRANSFORMMAT2 == null || this.CANVAS2D == null) return;
       this.GL.viewport(0, 0, this.CV.width, this.CV.height);
       this.GL.useProgram(this.SHADERCOPY);

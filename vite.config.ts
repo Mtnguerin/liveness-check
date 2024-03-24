@@ -15,6 +15,7 @@ const aliases = [
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: "./",
   plugins: [react(), svgr()],
   resolve: {
     alias: aliases.map((alias) => ({
